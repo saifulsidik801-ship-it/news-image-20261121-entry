@@ -6,7 +6,7 @@
 
 Sum up 21 November's world news in one image: a newspaper front page for Saturday 21 November 2026 with 35 dated stories across 7 regions. Lead stories: COP31 runs into overtime with no deal, five Houthi missiles shot down over Saudi Arabia, and a magnitude 6.7 earthquake shaking central Peru. Also inside: a numbers row, a region bar, ten illustrated stories (Kyiv, Hormuz, Tehran, Washington, Beijing, Davao, Canberra, markets, Las Vegas, Wellington), a world map with numbered pins, a 22-item ALSO list, and a DATE CHECK box naming Friday 20 November news left out on purpose.
 
-The program draws the whole page itself with pure Python 3.13 standard library: an embedded 5×7 bitmap font, vector icons, and a small PNG encoder. No network, no fonts on disk — two runs write byte-identical files.
+The program draws the whole page itself with pure Python 3.13 standard library: real Liberation Sans/Serif glyphs rasterized at build time and embedded as a compressed blob, vector icons, and a small PNG encoder. No network, no fonts on disk — two runs write byte-identical files.
 
 ## Run it
 
