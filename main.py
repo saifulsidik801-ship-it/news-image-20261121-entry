@@ -953,161 +953,187 @@ def png_bytes(cv):
     )
 
 # ---------------------------------------------------------------- scenes
+# v5: panels are ~2x taller than v4 (leads 106px, mediums 50px), so every
+# scene is drawn BIG with rich detail -- large subjects, saturated colour,
+# no thin strips.  Geometry is proportional to (w, h) so the scenes stay
+# full-blooded at any panel height.  The red banner is drawn over the top
+# of each panel by the layout code, so scenes keep their main subject out
+# of the top-left corner.
 def scene_cop31(cv, x, y, w, h):
-    # Climate summit: globe, thermometer, clock.
+    # Climate summit: big globe, thermometer, clock.
     cv.fill(x, y, w, h, (198, 226, 200))
-    cx, cy, r = x + 30, y + h // 2 + 2, 19
+    cx, cy, r = x + int(w * 0.17), y + h // 2 + 2, int(h * 0.32)
     cv.circle(cx, cy, r, BLUE)
-    cv.circle(cx - 6, cy - 5, 6, GREEN)
-    cv.circle(cx + 7, cy + 6, 5, GREEN)
-    cv.hline(cx - r, cy, 2 * r, BLUE, 1)
-    tx = x + w - 30
-    cv.fill(tx, y + 8, 8, h - 28, WHITE)
-    cv.rect(tx, y + 8, 8, h - 28, INK, 1)
-    cv.fill(tx + 2, y + 14, 4, h - 40, RED2)
-    cv.circle(tx + 4, y + h - 14, 8, RED2)
-    kx, ky = x + w // 2 + 6, y + 16
-    cv.circle(kx, ky, 10, WHITE)
-    cv.circle(kx, ky, 10, INK, filled=False)
-    cv.line(kx, ky, kx, ky - 6, INK, 2)
-    cv.line(kx, ky, kx + 5, ky + 2, INK, 2)
+    cv.circle(cx - r // 3, cy - r // 4, r // 3, GREEN)
+    cv.circle(cx + r // 3, cy + r // 3, r // 4, GREEN)
+    cv.circle(cx + r // 4, cy - r // 2, r // 5, GREEN)
+    cv.hline(cx - r, cy, 2 * r, WHITE, 2)
+    kx, ky, kr = x + int(w * 0.55), y + int(h * 0.30), int(h * 0.20)
+    cv.circle(kx, ky, kr, WHITE)
+    cv.circle(kx, ky, kr, INK, filled=False)
+    cv.line(kx, ky, kx, ky - kr + 4, INK, 2)
+    cv.line(kx, ky, kx + kr // 2, ky + kr // 4, INK, 2)
+    tx = x + int(w * 0.88)
+    tw = max(8, int(w * 0.035))
+    cv.fill(tx, y + int(h * 0.10), tw, int(h * 0.68), WHITE)
+    cv.rect(tx, y + int(h * 0.10), tw, int(h * 0.68), INK, 1)
+    cv.fill(tx + 2, y + int(h * 0.30), tw - 4, int(h * 0.48), RED2)
+    cv.circle(tx + tw // 2, y + int(h * 0.82), int(h * 0.11), RED2)
+    cv.hline(x, y + h - 3, w, (120, 170, 125), 2)
 
 
 def scene_riyadh(cv, x, y, w, h):
     # Night skyline, missile streaks, moon.
     cv.fill(x, y, w, h, NAVY)
-    for sx in range(x + 8, x + w - 8, 14):
-        for sy in range(y + 8, y + h - 8, 12):
+    for sx in range(x + 8, x + w - 8, 16):
+        for sy in range(y + 8, y + int(h * 0.55), 14):
             if (sx * 7 + sy * 13) % 29 < 8:
                 cv.set(sx, sy, (255, 220, 130))
-    heights = [26, 40, 20, 46, 30, 52, 24, 38, 30, 44, 22, 36]
-    bw = w // len(heights)
-    for i, bh in enumerate(heights):
+    fracs = [0.50, 0.72, 0.42, 0.85, 0.55, 0.92, 0.48, 0.68,
+             0.55, 0.78, 0.45, 0.65]
+    bw = w // len(fracs)
+    for i, f in enumerate(fracs):
+        bh = int(h * f)
         bx = x + i * bw
         cv.fill(bx + 1, y + h - bh, bw - 2, bh, (10, 16, 32))
-        for wy in range(y + h - bh + 4, y + h - 4, 8):
-            for wx in range(bx + 3, bx + bw - 3, 6):
+        for wy in range(y + h - bh + 5, y + h - 5, 9):
+            for wx in range(bx + 4, bx + bw - 4, 7):
                 if (wx + wy) % 11 < 4:
                     cv.set(wx, wy, (255, 210, 110))
-    for (sx, sy, ex, ey) in ((x + w - 20, y + 6, x + w - 90, y + 34),
-                             (x + w - 60, y + 2, x + w - 140, y + 30),
-                             (x + w - 6, y + 22, x + w - 70, y + 44)):
+    for (sx, sy, ex, ey) in ((x + w - 24, y + 8, x + w - 110, y + 42),
+                             (x + w - 70, y + 4, x + w - 170, y + 38),
+                             (x + w - 8, y + 28, x + w - 90, y + 56)):
         cv.line(sx, sy, ex, ey, (255, 140, 60), 2)
-        cv.circle(ex, ey, 3, (255, 200, 80))
-    cv.circle(x + w - 24, y + 16, 7, (240, 230, 190))
+        cv.circle(ex, ey, 4, (255, 200, 80))
+        cv.circle(ex, ey, 2, (255, 240, 160))
+    cv.circle(x + 28, y + 22, int(h * 0.13), (240, 230, 190))
 
 
 def scene_peru(cv, x, y, w, h):
-    # Andes, red seismograph trace, small house.
+    # Andes, red seismograph trace, house.
     cv.fill(x, y, w, h, (232, 214, 170))
-    cv.poly([(x, y + h), (x + 90, y + 14), (x + 180, y + h)], (150, 110, 70))
-    cv.poly([(x + 140, y + h), (x + 240, y + 22), (x + w, y + h)], (120, 88, 55))
-    pts = [(x + 8, y + 30), (x + 40, y + 30), (x + 52, y + 16), (x + 64, y + 44),
-           (x + 76, y + 20), (x + 88, y + 40), (x + 100, y + 30), (x + 150, y + 30),
-           (x + 162, y + 18), (x + 174, y + 42), (x + 186, y + 30), (x + w - 8, y + 30)]
+    cv.circle(x + int(w * 0.12), y + int(h * 0.18), int(h * 0.10),
+              (250, 220, 130))
+    cv.poly([(x, y + h), (x + int(w * 0.28), y + int(h * 0.16)),
+             (x + int(w * 0.56), y + h)], (150, 110, 70))
+    cv.poly([(x + int(w * 0.44), y + h), (x + int(w * 0.75), y + int(h * 0.22)),
+             (x + w, y + h)], (120, 88, 55))
+    mid = y + int(h * 0.30)
+    amp = int(h * 0.16)
+    xs = [0.03, 0.13, 0.17, 0.21, 0.25, 0.29, 0.33, 0.47, 0.51, 0.55,
+          0.59, 0.63, 0.97]
+    ys = [0, 0, -amp, amp, -amp // 2, amp // 2, 0, 0, -amp, amp, 0, 0, 0]
+    pts = [(x + int(fx * w), mid + dy) for fx, dy in zip(xs, ys)]
     for a, b in zip(pts, pts[1:]):
         cv.line(a[0], a[1], b[0], b[1], RED2, 2)
-    hx, hy = x + w - 62, y + h - 26
-    cv.fill(hx, hy, 34, 18, WHITE)
-    cv.poly([(hx - 4, hy), (hx + 17, hy - 12), (hx + 38, hy)], RED)
-    cv.fill(hx + 14, hy + 8, 6, 10, INK)
+    hx, hy = x + int(w * 0.78), y + h - int(h * 0.26)
+    hw, hh = int(w * 0.16), int(h * 0.26)
+    cv.fill(hx, hy, hw, hh, WHITE)
+    cv.poly([(hx - 4, hy), (hx + hw // 2, hy - int(h * 0.12)),
+             (hx + hw + 4, hy)], RED)
+    cv.fill(hx + hw // 2 - 3, hy + hh // 2, 6, hh // 2, INK)
 
 
 def scene_kyiv(cv, x, y, w, h):
     # Blue over yellow, dark skyline, red warning star.
-    cv.fill(x, y, w, h // 2, (0, 91, 172))
+    cv.fill(x, y, w, h // 2 + 2, (0, 91, 172))
     cv.fill(x, y + h // 2, w, h - h // 2, (255, 213, 0))
-    for i, bh in enumerate((12, 18, 10, 20, 14)):
-        bx = x + 8 + i * 34
-        cv.fill(bx, y + h - bh - 2, 26, bh, INK)
-    cv.circle(x + w - 18, y + 12, 6, RED2)
-    cv.fill(x + w - 20, y + 6, 4, 12, WHITE)
+    for i, bh in enumerate((int(h * 0.36), int(h * 0.56), int(h * 0.30),
+                            int(h * 0.64), int(h * 0.42))):
+        bx = x + 8 + i * (w // 5)
+        cv.fill(bx, y + h - bh - 2, w // 5 - 8, bh, INK)
+    cv.circle(x + w - 18, y + 12, int(h * 0.18), WHITE)
+    cv.circle(x + w - 18, y + 12, int(h * 0.14), RED2)
 
 
 def scene_hormuz(cv, x, y, w, h):
     # Strait: sea, tanker, drone.
     cv.fill(x, y, w, h, (120, 190, 220))
-    cv.fill(x, y + h - 8, w, 8, (20, 80, 140))
-    cv.circle(x + w - 20, y + 10, 7, (255, 220, 120))
-    sx, sy = x + 16, y + h - 18
-    cv.fill(sx, sy, 110, 10, (40, 40, 40))
-    cv.fill(sx + 70, sy - 10, 22, 10, (40, 40, 40))
-    cv.fill(sx + 76, sy - 16, 4, 6, RED2)
+    cv.fill(x, y + h - int(h * 0.16), w, int(h * 0.16), (20, 80, 140))
+    cv.circle(x + w - 20, y + 10, int(h * 0.22), (255, 220, 120))
+    sx, sy = x + 14, y + h - int(h * 0.36)
+    cv.fill(sx, sy, int(w * 0.60), int(h * 0.22), (40, 40, 40))
+    cv.fill(sx + int(w * 0.38), sy - int(h * 0.20), int(w * 0.12),
+            int(h * 0.20), (40, 40, 40))
+    cv.fill(sx + int(w * 0.41), sy - int(h * 0.30), 4, int(h * 0.12), RED2)
     dx, dy = x + w // 2 + 20, y + 10
-    cv.fill(dx - 8, dy, 16, 3, INK)
-    cv.fill(dx - 2, dy - 2, 4, 7, INK)
-    cv.fill(dx - 12, dy - 3, 8, 2, INK)
-    cv.fill(dx + 4, dy - 3, 8, 2, INK)
+    cv.fill(dx - 10, dy, 20, 4, INK)
+    cv.fill(dx - 2, dy - 2, 4, 9, INK)
+    cv.fill(dx - 15, dy - 3, 10, 2, INK)
+    cv.fill(dx + 5, dy - 3, 10, 2, INK)
 
 
 def scene_iran(cv, x, y, w, h):
     # Atom over a dome.
     cv.fill(x, y, w, h, (30, 30, 48))
-    cx, cy = x + w // 2, y + h // 2 + 4
-    cv.circle(cx, cy, 16, GOLD, filled=False)
-    cv.circle(cx, cy, 16, GOLD, filled=False)
-    cv.circle(cx, cy, 10, GOLD, filled=False)
+    cx, cy = x + w // 2, y + int(h * 0.60)
+    for r in (int(h * 0.34), int(h * 0.24), int(h * 0.14)):
+        cv.circle(cx, cy, r, GOLD, filled=False)
     cv.circle(cx, cy, 3, WHITE)
-    cv.fill(cx - 2, cy - 16, 4, 6, GOLD)
-    cv.poly([(x + 14, y + h), (cx, y + h - 16), (x + w - 14, y + h)], (90, 90, 110))
+    cv.fill(cx - 2, cy - int(h * 0.34), 4, 6, GOLD)
+    cv.poly([(x + 14, y + h), (cx, y + h - int(h * 0.30)),
+             (x + w - 14, y + h)], (90, 90, 110))
 
 
 def scene_aitax(cv, x, y, w, h):
     # AI chip on a dark board.
     cv.fill(x, y, w, h, (16, 24, 64))
-    cx, cy = x + w // 2, y + h // 2
-    cv.fill(cx - 16, cy - 12, 32, 24, (10, 10, 14))
-    cv.rect(cx - 16, cy - 12, 32, 24, GOLD, 2)
+    cx, cy = x + w // 2, y + h // 2 + 2
+    cw, ch = int(w * 0.30), int(h * 0.62)
+    cv.fill(cx - cw // 2, cy - ch // 2, cw, ch, (10, 10, 14))
+    cv.rect(cx - cw // 2, cy - ch // 2, cw, ch, GOLD, 2)
     for k in range(-1, 2):
-        cv.fill(cx - 20, cy + k * 8 - 1, 4, 2, GOLD)
-        cv.fill(cx + 16, cy + k * 8 - 1, 4, 2, GOLD)
-    draw_text(cv, cx - text_w("AI", "B20") // 2, cy - 7, "AI", "B20", WHITE)
+        cv.fill(cx - cw // 2 - 5, cy + k * 8 - 1, 5, 2, GOLD)
+        cv.fill(cx + cw // 2, cy + k * 8 - 1, 5, 2, GOLD)
+    draw_text(cv, cx - text_w("AI", "B26") // 2, cy - 9, "AI", "B26", WHITE)
 
 
 def scene_chinajapan(cv, x, y, w, h):
     # China red with stars, Japan white with sun.
     cv.fill(x, y, w // 2, h, (222, 0, 41))
     cv.fill(x + w // 2, y, w - w // 2, h, WHITE)
-    for sx, sy in ((8, 6), (20, 10), (26, 20), (12, 22)):
-        cv.circle(x + sx, y + sy, 2, (255, 222, 0))
-    cv.circle(x + w // 2 + (w - w // 2) // 2, y + h // 2, 10, (188, 0, 45))
+    for sx, sy in ((10, 8), (24, 12), (30, 24), (14, 26)):
+        cv.circle(x + sx, y + sy, 3, (255, 222, 0))
+    cv.circle(x + w // 2 + (w - w // 2) // 2, y + h // 2,
+              int(h * 0.30), (188, 0, 45))
 
 
 def scene_davao(cv, x, y, w, h):
     # Jet on approach over the runway.
     cv.fill(x, y, w, h, (140, 200, 235))
-    cv.fill(x, y + h - 10, w, 10, (60, 120, 60))
-    cv.fill(x, y + h - 12, w, 2, (40, 40, 40))
+    cv.fill(x, y + h - int(h * 0.20), w, int(h * 0.20), (60, 120, 60))
+    cv.fill(x, y + h - int(h * 0.24), w, 2, (40, 40, 40))
     fx, fy = x + w // 2, y + h // 2
-    cv.fill(fx - 52, fy - 3, 104, 7, WHITE)
-    cv.poly([(fx - 10, fy - 3), (fx + 14, fy - 16), (fx + 26, fy - 16),
-             (fx + 10, fy - 3)], WHITE)
-    cv.poly([(fx - 30, fy + 4), (fx - 44, fy + 16), (fx - 30, fy + 16),
-             (fx - 18, fy + 4)], WHITE)
-    cv.poly([(fx + 46, fy - 3), (fx + 58, fy - 14), (fx + 62, fy - 14),
-             (fx + 56, fy - 3)], WHITE)
-    cv.circle(fx + 44, fy, 2, BLUE)
+    cv.fill(fx - 62, fy - 4, 124, 8, WHITE)
+    cv.poly([(fx - 12, fy - 4), (fx + 16, fy - 20), (fx + 30, fy - 20),
+             (fx + 12, fy - 4)], WHITE)
+    cv.poly([(fx - 36, fy + 4), (fx - 52, fy + 18), (fx - 36, fy + 18),
+             (fx - 20, fy + 4)], WHITE)
+    cv.poly([(fx + 54, fy - 4), (fx + 68, fy - 16), (fx + 72, fy - 16),
+             (fx + 64, fy - 4)], WHITE)
+    cv.circle(fx + 52, fy, 3, BLUE)
 
 
 def scene_canberra(cv, x, y, w, h):
     # Two flags side by side: Australia blue, China red.
     cv.fill(x, y, w // 2, h, (0, 40, 120))
     cv.fill(x + w // 2, y, w - w // 2, h, (222, 0, 41))
-    for sx, sy in ((14, 8), (30, 16), (18, 24), (36, 8)):
-        cv.circle(x + sx, y + sy, 2, WHITE)
-    for sx, sy in ((10, 8), (22, 12), (28, 22), (14, 24)):
-        cv.circle(x + w // 2 + sx, y + sy, 2, (255, 222, 0))
-    cv.fill(x, y + h - 6, w, 6, GOLD)
+    for sx, sy in ((16, 10), (34, 18), (20, 28), (40, 10)):
+        cv.circle(x + sx, y + sy, 3, WHITE)
+    for sx, sy in ((12, 10), (26, 14), (32, 26), (16, 28)):
+        cv.circle(x + w // 2 + sx, y + sy, 3, (255, 222, 0))
+    cv.fill(x, y + h - int(h * 0.12), w, int(h * 0.12), GOLD)
 
 
 def scene_bitcoin(cv, x, y, w, h):
     # Bitcoin coin, red falling line.
     cv.fill(x, y, w, h, (16, 20, 32))
-    cx, cy = x + 34, y + h // 2
-    cv.circle(cx, cy, 16, (247, 147, 26))
-    draw_text(cv, cx - text_w("B", "B20") // 2, cy - 7, "B", "B20", WHITE)
-    pts = [(x + 62, y + 8), (x + 84, y + 14), (x + 106, y + 10),
-           (x + 128, y + 22), (x + 150, y + 26), (x + w - 8, y + h - 10)]
+    cx, cy = x + int(w * 0.20), y + h // 2
+    cv.circle(cx, cy, int(h * 0.44), (247, 147, 26))
+    draw_text(cv, cx - text_w("B", "B26") // 2, cy - 9, "B", "B26", WHITE)
+    pts = [(x + int(w * 0.36), y + 8), (x + int(w * 0.48), y + 14),
+           (x + int(w * 0.60), y + 10), (x + int(w * 0.72), y + 24),
+           (x + int(w * 0.84), y + 28), (x + w - 8, y + h - 10)]
     for a, b in zip(pts, pts[1:]):
         cv.line(a[0], a[1], b[0], b[1], RED2, 2)
     pct = "-3.9%"
@@ -1118,32 +1144,33 @@ def scene_bitcoin(cv, x, y, w, h):
 def scene_f1(cv, x, y, w, h):
     # Chequered band, red race car under lights.
     cv.fill(x, y, w, h, (12, 12, 20))
-    for i in range(0, w, 12):
+    cs = max(8, int(h * 0.20))
+    for i in range(0, w, cs):
         for j in (0, 1):
-            if (i // 12 + j) % 2 == 0:
-                cv.fill(x + i, y + j * 6, 12, 6, WHITE)
-    cx, cy = x + w // 2, y + h // 2 + 6
-    cv.fill(cx - 52, cy - 6, 104, 10, RED2)
-    cv.poly([(cx - 20, cy - 6), (cx - 8, cy - 16), (cx + 22, cy - 16),
-             (cx + 30, cy - 6)], RED2)
-    cv.fill(cx - 58, cy - 14, 8, 8, RED2)
-    cv.circle(cx - 30, cy + 6, 7, INK)
-    cv.circle(cx + 30, cy + 6, 7, INK)
-    cv.circle(cx - 30, cy + 6, 3, GREY)
-    cv.circle(cx + 30, cy + 6, 3, GREY)
+            if (i // cs + j) % 2 == 0:
+                cv.fill(x + i, y + j * (cs // 2), cs, cs // 2, WHITE)
+    cx, cy = x + w // 2, y + h // 2 + 8
+    cv.fill(cx - 62, cy - 7, 124, 12, RED2)
+    cv.poly([(cx - 24, cy - 7), (cx - 10, cy - 20), (cx + 26, cy - 20),
+             (cx + 36, cy - 7)], RED2)
+    cv.fill(cx - 70, cy - 16, 10, 10, RED2)
+    cv.circle(cx - 36, cy + 7, 8, INK)
+    cv.circle(cx + 36, cy + 7, 8, INK)
+    cv.circle(cx - 36, cy + 7, 3, GREY)
+    cv.circle(cx + 36, cy + 7, 3, GREY)
 
 
 def scene_cricket(cv, x, y, w, h):
     # Green outfield, pitch, bat and ball.
     cv.fill(x, y, w, h, (40, 130, 60))
-    cv.fill(x + w // 2 - 14, y, 28, h, (205, 175, 120))
-    for yy in (6, h - 8):
-        for xx in (-8, 0, 8):
-            cv.fill(x + w // 2 + xx - 1, y + yy, 2, 6, (255, 230, 120))
-    bx, by = x + w // 2 - 34, y + h // 2 - 4
-    cv.fill(bx, by, 22, 5, (150, 105, 50))
-    cv.fill(bx + 22, by + 1, 8, 3, (150, 105, 50))
-    cv.circle(x + w // 2 + 30, y + h // 2 + 8, 4, RED2)
+    cv.fill(x + w // 2 - 16, y, 32, h, (205, 175, 120))
+    for yy in (8, h - 10):
+        for xx in (-10, 0, 10):
+            cv.fill(x + w // 2 + xx - 1, y + yy, 2, 7, (255, 230, 120))
+    bx, by = x + w // 2 - 42, y + h // 2 - 5
+    cv.fill(bx, by, 26, 6, (150, 105, 50))
+    cv.fill(bx + 26, by + 1, 10, 4, (150, 105, 50))
+    cv.circle(x + w // 2 + 36, y + h // 2 + 10, 5, RED2)
 
 
 # ---------------------------------------------------------------- data
@@ -1166,28 +1193,28 @@ LEADS = [
      scene_peru),
 ]
 
-# (kicker, headline, summary, scene) -- headlines and summaries fit
-# 2 lines at scale 2 in a 188 px column (15 chars a line).
+# (banner, kicker, headline, summary, scene) -- banner is the short red
+# label on top of each picture, as in the top-1 entry.
 MEDIUM = [
-    ("4 KYIV - WAR", "Crimea bridge 'will not stay'",
+    ("KYIV: WARNING", "4 KYIV - WAR", "Crimea bridge 'will not stay'",
      "More strikes feared.", scene_kyiv),
-    ("5 HORMUZ - WAR", "Iran 'shoots down US drone'",
+    ("HORMUZ: DRONE", "5 HORMUZ - WAR", "Iran 'shoots down US drone'",
      "No word from Washington yet.", scene_hormuz),
-    ("6 TEHRAN", "Iran: uranium stock stays put",
+    ("IRAN: URANIUM", "6 TEHRAN", "Iran: uranium stock stays put",
      "Seeks a 'fair solution'.", scene_iran),
-    ("7 WASHINGTON", "Trump vows tax on data centres",
+    ("TRUMP: AI TAX", "7 WASHINGTON", "Trump vows tax on data centres",
      "No details yet on the penalty.", scene_aitax),
-    ("8 BEIJING", "China warns Japan on Taiwan",
+    ("CHINA-JAPAN", "8 BEIJING", "China warns Japan on Taiwan",
      "Tokyo: stance is unchanged.", scene_chinajapan),
-    ("9 DAVAO - AIR", "146 safe as jet lands in Davao",
+    ("DAVAO: 146 SAFE", "9 DAVAO - AIR", "146 safe as jet lands in Davao",
      "767 diverts after midnight.", scene_davao),
-    ("10 CANBERRA", "Australia-China AI talks",
+    ("CANBERRA: AI", "10 CANBERRA", "Australia-China AI talks",
      "The two agree to AI talks.", scene_canberra),
-    ("11 MARKETS", "Bitcoin trades below $59,000",
+    ("BITCOIN: $58,983", "11 MARKETS", "Bitcoin trades below $59,000",
      "Down 3.9%; ether $1,625.", scene_bitcoin),
-    ("12 LAS VEGAS F1", "Russell fastest in practice",
+    ("RUSSELL: P1", "12 LAS VEGAS F1", "Russell fastest in practice",
      "1:34.041 in a damp session.", scene_f1),
-    ("13 WELLINGTON", "Rahul's century in Wellington",
+    ("RAHUL: 124*", "13 WELLINGTON", "Rahul's century in Wellington",
      "India 344 for 2 at tea.", scene_cricket),
 ]
 
@@ -1267,8 +1294,8 @@ def draw_map(cv, x, y, w, h):
     for px, py, n in pins:
         cxp = x + int(px * sx)
         cyp = y + int(py * sy)
-        cv.circle(cxp, cyp, 7, RED2)
-        draw_text(cv, cxp - text_w(n, "B16") // 2, cyp - 7, n, "B16", WHITE)
+        cv.circle(cxp, cyp, 9, RED2)
+        draw_text(cv, cxp - text_w(n, "B16") // 2, cyp - 8, n, "B16", WHITE)
     draw_text(cv, x + 6, y + h - 40, "Each number is", "R16", WHITE)
     draw_text(cv, x + 6, y + h - 21, "the story.", "R16", WHITE)
 
@@ -1322,64 +1349,72 @@ def build_image():
         rx += wch + 8
     y += 21
 
-    # Three illustrated leads.
+    # Three illustrated leads. v5: pictures ~2x taller (106px) to match
+    # the top-1 entry; summaries at R16 so the taller pictures fit.
+    LEAD_H = 106
     lw = (RW - 24) // 3
     lead_bottom = y
     for i, (banner, tag, kick, head, summ, scene) in enumerate(LEADS):
         lx = M + i * (lw + 12)
-        scene(cv, lx, y, lw, 52)
+        scene(cv, lx, y, lw, LEAD_H)
         cv.fill(lx, y, text_w(banner, "B16") + 12, 20, RED)
         draw_text(cv, lx + 6, y + 1, banner, "B16", WHITE)
-        cv.fill(lx, y + 52 - 20, text_w(tag, "B16") + 12, 20, WHITE)
-        draw_text(cv, lx + 6, y + 52 - 19, tag, "B16", INK)
-        ky = y + 56
+        cv.fill(lx, y + LEAD_H - 20, text_w(tag, "B16") + 12, 20, WHITE)
+        draw_text(cv, lx + 6, y + LEAD_H - 19, tag, "B16", INK)
+        ky = y + LEAD_H + 4
         draw_text(cv, lx, ky, kick, "B16", RED)
         hy = ky + line_h("B16") + 4
         n_head = len(wrap(head, lw, "B26"))
         draw_para(cv, lx, hy, head, lw, "B26", INK, leading=line_h("B26"))
         sy = hy + n_head * line_h("B26") + 4
-        n_summ = len(wrap(summ, lw, "R20"))
-        draw_para(cv, lx, sy, summ, lw, "R20", (60, 60, 60),
-                  leading=line_h("R20"))
-        lead_bottom = max(lead_bottom, sy + n_summ * line_h("R20"))
-    y = lead_bottom + 6
+        n_summ = len(wrap(summ, lw, "R16"))
+        draw_para(cv, lx, sy, summ, lw, "R16", (60, 60, 60),
+                  leading=line_h("R16"))
+        lead_bottom = max(lead_bottom, sy + n_summ * line_h("R16"))
+    y = lead_bottom + 4
 
-    # Ten medium stories, 2 rows x 5.
+    # Ten medium stories, 2 rows x 5. v5: pictures ~2x taller (50px) with
+    # a red banner label on top, as in the top-1 entry; summaries at R16.
+    MED_H = 50
+    MED_PITCH = MED_H + 117
     mw = (RW - 40) // 5
     for row in range(2):
         for col in range(5):
-            kick, head, summ, scene = MEDIUM[row * 5 + col]
+            banner, kick, head, summ, scene = MEDIUM[row * 5 + col]
             mx = M + col * (mw + 10)
-            my = y + row * 152
-            scene(cv, mx, my, mw, 26)
-            draw_text(cv, mx, my + 30, kick, "B16", RED)
-            hy = my + 30 + line_h("B16") + 3
+            my = y + row * MED_PITCH
+            scene(cv, mx, my, mw, MED_H)
+            cv.fill(mx, my, text_w(banner, "B16") + 12, 18, RED)
+            draw_text(cv, mx + 6, my + 1, banner, "B16", WHITE)
+            draw_text(cv, mx, my + MED_H + 2, kick, "B16", RED)
+            hy = my + MED_H + 2 + line_h("B16") + 3
             n_head = len(wrap(head, mw, "B20"))
             draw_para(cv, mx, hy, head, mw, "B20", INK,
                       leading=line_h("B20"))
             sy = hy + n_head * line_h("B20") + 3
-            n_summ = len(wrap(summ, mw, "R20"))
-            draw_para(cv, mx, sy, summ, mw, "R20", (60, 60, 60),
-                      leading=line_h("R20"))
-    y += 2 * 152 + 6
+            n_summ = len(wrap(summ, mw, "R16"))
+            draw_para(cv, mx, sy, summ, mw, "R16", (60, 60, 60),
+                      leading=line_h("R16"))
+    y += 2 * MED_PITCH + 4
 
-    # Map + ALSO list.
+    # Map + ALSO list. v5: map shorter (140px) and wider (240px), ALSO in
+    # 3 columns so the section shrinks and frees room for the pictures.
+    map_w, map_h = 240, 140
+    ax = M + map_w + 16
+    acw = (RW - map_w - 16) // 3
     draw_text(cv, M, y, "WHERE IT HAPPENED", "B16", RED)
-    draw_text(cv, M + 304, y, "ALSO ON SATURDAY 21 NOVEMBER - 22 MORE STORIES",
+    draw_text(cv, ax, y, "ALSO ON SATURDAY 21 NOVEMBER - 22 MORE STORIES",
               "B16", RED)
     y += line_h("B16")
-    map_w = 264
-    draw_map(cv, M, y, map_w, 209)
-    ax = M + map_w + 16
-    acw = (RW - map_w - 16) // 2
+    draw_map(cv, M, y, map_w, map_h)
     for i, item in enumerate(ALSO):
-        ix = ax + (i // 11) * acw
-        iy = y + (i % 11) * line_h("R16")
+        ix = ax + (i // 8) * acw
+        iy = y + (i % 8) * 17
         num = item.split(" ", 1)[0]
         rest = item[len(num) + 1:]
         draw_text(cv, ix, iy, num + " ", "B16", RED)
         draw_text(cv, ix + text_w(num + " ", "B16"), iy, rest, "R16", INK)
-    y += 209 + 4
+    y += map_h + 2
 
     # DATE CHECK box.
     lines = wrap(DATE_CHECK, RW - 16, "R16")
@@ -1389,7 +1424,7 @@ def build_image():
     for ln in lines:
         draw_text(cv, M + 8, ty, ln, "R16", INK)
         ty += line_h("R16")
-    y += box_h + 4
+    y += box_h + 3
 
     # Footer.
     draw_text_centered(cv, W // 2, y,
@@ -1427,3 +1462,11 @@ if __name__ == "__main__":
 # right stem (never a lowercase g); 0 is the slashed zero from the real
 # face, distinct from O.  Body copy is drawn at 16-20px so every word
 # stays readable at a 360px phone preview.
+#
+# Layout note (v5): v4's pictures were thin bands (52px leads, 26px
+# mediums) -- about a third of the top-1 entry's panels.  v5 doubles
+# them (106px leads, 50px mediums, red banner labels on the mediums)
+# and rewrites all 13 scenes proportionally richer, shrinking the map
+# to 240x140 and the ALSO list to 3 columns to keep the 1024x1024 page
+# (final y 1015).  Same 35 stories, same Liberation type, no wording
+# changed.
