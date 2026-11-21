@@ -461,3 +461,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Font note: lowercase 'g' sits on the x-height (bowl rows 2-4) with its loop
+# below, and '9' keeps a straight stem, so the two never read as each other;
+# 'y' descends to the left for the same reason. Keep these shapes distinct.
