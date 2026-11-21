@@ -404,10 +404,10 @@ def build_image():
     panels = [
         ("MARKETS", "WALL STREET SLUMPS INTO CORRECTION",
          "S&P 500 falls 3.7% as AI shares sell off; Nasdaq down over 5%.", icon_chart, RED),
-        ("MIDDLE EAST", "AID PLEA FOR FLOODED GAZA",
-         "Australia, Canada, Italy and the UK urge Israel to let in 150,000 tents stuck at the border.", icon_tent, TEAL),
-        ("EUROPE", "FRANCE MARCHES FOR 4TH WEEKEND",
-         "146,000 protest living costs across France; 46,000 in Paris.", icon_crowd, NAVY2),
+        ("MIDDLE EAST", "SAUDI INTERCEPTS HOUTHI MISSILES",
+         "Riyadh shoots down ballistic missiles and drones a day after a skyscraper was hit.", icon_tent, TEAL),
+        ("EUROPE", "DENMARK: RUSSIA PLOT TO KILL RAPPER",
+         "Two Danes charged over a plot to assassinate a US-Ukrainian rapper.", icon_crowd, NAVY2),
         ("CLIMATE", "COP31 ENTERS FINAL STRETCH",
          "Fossil fuels and climate finance top the agenda in Turkey.", icon_globe, (34, 139, 34)),
     ]
@@ -430,12 +430,12 @@ def build_image():
     draw_text(cv, M, ay, "ALSO TODAY", 2, RED)
     cv.hline(M, ay + 20, RW, INK, 2)
     items = [
-        ("CYCLONE AKVAN", "crosses India's Odisha coast"),
-        ("ISRAEL", "Eisenkot tapped to form government"),
-        ("EVEREST", "two helicopters collide; one dead"),
-        ("SCIENCE", "pancreatic-cancer pill hailed a breakthrough"),
-        ("NIGERIA", "states to run their own police"),
-        ("CULTURE", "Robert Pattinson is the next James Bond"),
+        ("WORLD COURT", "finds Myanmar guilty of Rohingya genocide"),
+        ("NEW YORK", "Mamdani to close Rikers Island jail by 2032"),
+        ("WASHINGTON", "Trump threatens ban on overseas AI data centres"),
+        ("SOUTH AFRICA", "nearly 600 women killed in three months"),
+        ("PENTAGON", "declassifies UFO footage from Middle East"),
+        ("FRANCE", "police sentenced for beating Michel Zecler"),
     ]
     cw = (RW - 48) // 3
     for i, (lead, rest) in enumerate(items):
