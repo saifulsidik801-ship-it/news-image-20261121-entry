@@ -6,6 +6,15 @@ with pure Python 3.13 standard library only (no network, no fonts on
 disk).  The image is rendered with an embedded 5x7 bitmap font and a
 small PNG encoder, so the program is fully deterministic: two runs
 write byte-identical files.
+
+Layout follows the winning front-page pattern: huge date, numbers row,
+region bar, three illustrated leads, ten illustrated medium stories, a
+world map with numbered pins, a 22-item ALSO list (35 stories in all),
+and a DATE CHECK box that names Friday 20 November news left out on
+purpose.  Every story happened, or was first reported, on Saturday
+21 November 2026; Friday stories (Poland missiles, Wall Street's
+correction, the Myanmar ruling, the UK-EU deal, Cyclone Akvan's
+landfall) are named in DATE CHECK, not shown as Saturday's.
 """
 
 import os
@@ -125,6 +134,8 @@ RED2 = (220, 38, 38)
 BLUE = (29, 78, 216)
 TEAL = (13, 116, 128)
 GOLD = (180, 130, 20)
+GREEN = (34, 139, 34)
+PURPLE = (90, 60, 140)
 WHITE = (255, 255, 255)
 GREY = (90, 90, 90)
 LIGHT = (238, 232, 216)
@@ -226,6 +237,11 @@ def draw_text_centered(cv, cx, y, s, scale, color):
     draw_text(cv, cx - text_w(s, scale) // 2, y, s, scale, color)
 
 
+def draw_text_bold(cv, x, y, s, scale, color):
+    draw_text(cv, x, y, s, scale, color)
+    draw_text(cv, x + 1, y, s, scale, color)
+
+
 def wrap(s, max_w, scale):
     words = s.split(" ")
     lines = []
@@ -274,180 +290,437 @@ def png_bytes(cv):
         + chunk(b"IEND", b"")
     )
 
-# ---------------------------------------------------------------- icons
-def icon_chart(cv, x, y, w, h):
-    # Falling market chart: axes + red descending line + bars.
-    cv.hline(x, y + h - 8, w, INK, 2)
-    cv.vline(x, y, h - 8, INK, 2)
-    pts = [(x + 6, y + 10), (x + 20, y + 22), (x + 34, y + 18),
-           (x + 48, y + 38), (x + 62, y + 52), (x + w - 6, y + h - 16)]
-    for a, b in zip(pts, pts[1:]):
-        cv.line(a[0], a[1], b[0], b[1], RED2, 3)
-    for px, py in pts:
-        cv.circle(px, py, 3, RED2)
-    cv.line(x + 6, y + 6, x + w - 6, y + 6, GREY, 1)
-
-
-def icon_tent(cv, x, y, w, h):
-    # Aid tent in the rain + supply box.
-    cv.poly([(x + 8, y + h - 10), (x + w // 2, y + 14), (x + w - 8, y + h - 10)], TEAL)
-    cv.poly([(x + w // 2 - 8, y + h - 10), (x + w // 2, y + h - 26),
-             (x + w // 2 + 8, y + h - 10)], INK)
-    for dx in (4, 16, 28):
-        cv.line(x + dx, y + 4, x + dx - 3, y + 12, BLUE, 2)
-    cv.fill(x + w - 22, y + h - 22, 16, 12, GOLD)
-    cv.hline(x + w - 22, y + h - 16, 16, INK, 2)
-
-
-def icon_crowd(cv, x, y, w, h):
-    # Marchers with a placard.
-    for i, dx in enumerate((6, 22, 38)):
-        cv.circle(x + dx + 6, y + 16, 6, NAVY2)
-        cv.fill(x + dx, y + 24, 12, h - 32, NAVY2 if i != 1 else RED)
-    cv.vline(x + w - 16, y + 6, h - 14, INK, 2)
-    cv.fill(x + w - 34, y + 6, 34, 18, WHITE)
-    cv.rect(x + w - 34, y + 6, 34, 18, RED, 2)
-    cv.fill(x + w - 30, y + 12, 12, 3, RED)
-    cv.fill(x + w - 30, y + 17, 20, 3, INK)
-
-
-def icon_globe(cv, x, y, w, h):
-    # Globe with a leaf: climate talks.
-    cx, cy, r = x + w // 2 - 6, y + h // 2, min(w, h) // 2 - 6
-    cv.circle(cx, cy, r, BLUE, filled=False)
-    cv.circle(cx, cy, r, BLUE, filled=False)
-    for rr in (r // 2,):
-        for yy in range(cy - rr, cy + rr + 1):
-            dx = int((rr * rr - (yy - cy) ** 2) ** 0.5)
-            cv.set(cx - dx, yy, BLUE)
-            cv.set(cx + dx, yy, BLUE)
+# ---------------------------------------------------------------- scenes
+def scene_cop31(cv, x, y, w, h):
+    # Climate summit: globe, thermometer, clock.
+    cv.fill(x, y, w, h, (198, 226, 200))
+    cx, cy, r = x + 30, y + h // 2 + 2, 19
+    cv.circle(cx, cy, r, BLUE)
+    cv.circle(cx - 6, cy - 5, 6, GREEN)
+    cv.circle(cx + 7, cy + 6, 5, GREEN)
     cv.hline(cx - r, cy, 2 * r, BLUE, 1)
-    # Leaf: diamond blade + stem, sitting on the globe's edge.
-    cv.poly([(cx + 8, cy + 4), (cx + 24, cy - 14), (cx + 30, cy + 2),
-             (cx + 16, cy + 12)], (34, 139, 34))
-    cv.line(cx + 8, cy + 4, cx + 2, cy + 12, (34, 139, 34), 2)
+    tx = x + w - 30
+    cv.fill(tx, y + 8, 8, h - 28, WHITE)
+    cv.rect(tx, y + 8, 8, h - 28, INK, 1)
+    cv.fill(tx + 2, y + 14, 4, h - 40, RED2)
+    cv.circle(tx + 4, y + h - 14, 8, RED2)
+    kx, ky = x + w // 2 + 6, y + 16
+    cv.circle(kx, ky, 10, WHITE)
+    cv.circle(kx, ky, 10, INK, filled=False)
+    cv.line(kx, ky, kx, ky - 6, INK, 2)
+    cv.line(kx, ky, kx + 5, ky + 2, INK, 2)
 
 
-def lead_art(cv, x, y, w, h):
-    # Night map panel: graticule, missile streaks, blast marker, NATO star.
-    import math
+def scene_riyadh(cv, x, y, w, h):
+    # Night skyline, missile streaks, moon.
     cv.fill(x, y, w, h, NAVY)
-    for gx in range(x + 28, x + w, 56):
-        cv.vline(gx, y, h, (38, 60, 100), 1)
-    for gy in range(y + 28, y + h, 56):
-        cv.hline(x, gy, w, (38, 60, 100), 1)
-    # Abstract landmass.
-    cv.poly([(x + 30, y + h - 40), (x + 90, y + 70), (x + 180, y + 40),
-             (x + 250, y + 90), (x + 300, y + 160), (x + 260, y + h - 30),
-             (x + 120, y + h - 16)], (52, 78, 128))
-    # Missile streaks coming in from the top right.
-    for i, (sx, sy, ex, ey) in enumerate((
-            (x + w - 30, y + 18, x + 190, y + 150),
-            (x + w - 70, y + 8, x + 150, y + 132),
-            (x + w - 10, y + 70, x + 210, y + 168))):
-        cv.line(sx, sy, ex, ey, RED2, 3)
-        cv.line(sx, sy, ex, ey, (255, 120, 120), 1)
-        cv.circle(ex, ey, 5, (255, 200, 80))
-    # Blast marker.
-    bx, by = x + 178, y + 148
-    for r, c in ((26, (255, 90, 90)), (18, RED2), (10, (255, 200, 80))):
-        cv.circle(bx, by, r, c)
-    for k in range(8):
-        ang = k * math.pi / 4
-        ex = bx + int(34 * math.cos(ang))
-        ey = by + int(34 * math.sin(ang))
-        cv.line(bx, by, ex, ey, (255, 200, 80), 2)
-    # NATO compass star, top left.
-    sx, sy = x + 44, y + 44
-    cv.circle(sx, sy, 26, WHITE, filled=False)
-    cv.poly([(sx, sy - 24), (sx + 6, sy - 6), (sx + 24, sy), (sx + 6, sy + 6),
-             (sx, sy + 24), (sx - 6, sy + 6), (sx - 24, sy), (sx - 6, sy - 6)], WHITE)
-    draw_text(cv, sx + 34, sy - 8, "NATO", 2, WHITE)
-    draw_text(cv, x + 24, y + h - 34, "POLAND", 2, WHITE)
-    draw_text(cv, x + 24, y + h - 58, "MISSILES CROSS", 2, (255, 150, 150))
+    for sx in range(x + 8, x + w - 8, 14):
+        for sy in range(y + 8, y + h - 8, 12):
+            if (sx * 7 + sy * 13) % 29 < 8:
+                cv.set(sx, sy, (255, 220, 130))
+    heights = [26, 40, 20, 46, 30, 52, 24, 38, 30, 44, 22, 36]
+    bw = w // len(heights)
+    for i, bh in enumerate(heights):
+        bx = x + i * bw
+        cv.fill(bx + 1, y + h - bh, bw - 2, bh, (10, 16, 32))
+        for wy in range(y + h - bh + 4, y + h - 4, 8):
+            for wx in range(bx + 3, bx + bw - 3, 6):
+                if (wx + wy) % 11 < 4:
+                    cv.set(wx, wy, (255, 210, 110))
+    for (sx, sy, ex, ey) in ((x + w - 20, y + 6, x + w - 90, y + 34),
+                             (x + w - 60, y + 2, x + w - 140, y + 30),
+                             (x + w - 6, y + 22, x + w - 70, y + 44)):
+        cv.line(sx, sy, ex, ey, (255, 140, 60), 2)
+        cv.circle(ex, ey, 3, (255, 200, 80))
+    cv.circle(x + w - 24, y + 16, 7, (240, 230, 190))
+
+
+def scene_peru(cv, x, y, w, h):
+    # Andes, red seismograph trace, small house.
+    cv.fill(x, y, w, h, (232, 214, 170))
+    cv.poly([(x, y + h), (x + 90, y + 14), (x + 180, y + h)], (150, 110, 70))
+    cv.poly([(x + 140, y + h), (x + 240, y + 22), (x + w, y + h)], (120, 88, 55))
+    pts = [(x + 8, y + 30), (x + 40, y + 30), (x + 52, y + 16), (x + 64, y + 44),
+           (x + 76, y + 20), (x + 88, y + 40), (x + 100, y + 30), (x + 150, y + 30),
+           (x + 162, y + 18), (x + 174, y + 42), (x + 186, y + 30), (x + w - 8, y + 30)]
+    for a, b in zip(pts, pts[1:]):
+        cv.line(a[0], a[1], b[0], b[1], RED2, 2)
+    hx, hy = x + w - 62, y + h - 26
+    cv.fill(hx, hy, 34, 18, WHITE)
+    cv.poly([(hx - 4, hy), (hx + 17, hy - 12), (hx + 38, hy)], RED)
+    cv.fill(hx + 14, hy + 8, 6, 10, INK)
+
+
+def scene_kyiv(cv, x, y, w, h):
+    # Blue over yellow, dark skyline, red warning star.
+    cv.fill(x, y, w, h // 2, (0, 91, 172))
+    cv.fill(x, y + h // 2, w, h - h // 2, (255, 213, 0))
+    for i, bh in enumerate((12, 18, 10, 20, 14)):
+        bx = x + 8 + i * 34
+        cv.fill(bx, y + h - bh - 2, 26, bh, INK)
+    cv.circle(x + w - 18, y + 12, 6, RED2)
+    cv.fill(x + w - 20, y + 6, 4, 12, WHITE)
+
+
+def scene_hormuz(cv, x, y, w, h):
+    # Strait: sea, tanker, drone.
+    cv.fill(x, y, w, h, (120, 190, 220))
+    cv.fill(x, y + h - 8, w, 8, (20, 80, 140))
+    cv.circle(x + w - 20, y + 10, 7, (255, 220, 120))
+    sx, sy = x + 16, y + h - 18
+    cv.fill(sx, sy, 110, 10, (40, 40, 40))
+    cv.fill(sx + 70, sy - 10, 22, 10, (40, 40, 40))
+    cv.fill(sx + 76, sy - 16, 4, 6, RED2)
+    dx, dy = x + w // 2 + 20, y + 10
+    cv.fill(dx - 8, dy, 16, 3, INK)
+    cv.fill(dx - 2, dy - 2, 4, 7, INK)
+    cv.fill(dx - 12, dy - 3, 8, 2, INK)
+    cv.fill(dx + 4, dy - 3, 8, 2, INK)
+
+
+def scene_iran(cv, x, y, w, h):
+    # Atom over a dome.
+    cv.fill(x, y, w, h, (30, 30, 48))
+    cx, cy = x + w // 2, y + h // 2 + 4
+    cv.circle(cx, cy, 16, GOLD, filled=False)
+    cv.circle(cx, cy, 16, GOLD, filled=False)
+    cv.circle(cx, cy, 10, GOLD, filled=False)
+    cv.circle(cx, cy, 3, WHITE)
+    cv.fill(cx - 2, cy - 16, 4, 6, GOLD)
+    cv.poly([(x + 14, y + h), (cx, y + h - 16), (x + w - 14, y + h)], (90, 90, 110))
+
+
+def scene_aitax(cv, x, y, w, h):
+    # AI chip on a dark board.
+    cv.fill(x, y, w, h, (16, 24, 64))
+    cx, cy = x + w // 2, y + h // 2
+    cv.fill(cx - 16, cy - 12, 32, 24, (10, 10, 14))
+    cv.rect(cx - 16, cy - 12, 32, 24, GOLD, 2)
+    for k in range(-1, 2):
+        cv.fill(cx - 20, cy + k * 8 - 1, 4, 2, GOLD)
+        cv.fill(cx + 16, cy + k * 8 - 1, 4, 2, GOLD)
+    draw_text(cv, cx - 11, cy - 7, "AI", 2, WHITE)
+
+
+def scene_chinajapan(cv, x, y, w, h):
+    # China red with stars, Japan white with sun.
+    cv.fill(x, y, w // 2, h, (222, 0, 41))
+    cv.fill(x + w // 2, y, w - w // 2, h, WHITE)
+    for sx, sy in ((8, 6), (20, 10), (26, 20), (12, 22)):
+        cv.circle(x + sx, y + sy, 2, (255, 222, 0))
+    cv.circle(x + w // 2 + (w - w // 2) // 2, y + h // 2, 10, (188, 0, 45))
+
+
+def scene_davao(cv, x, y, w, h):
+    # Jet on approach over the runway.
+    cv.fill(x, y, w, h, (140, 200, 235))
+    cv.fill(x, y + h - 10, w, 10, (60, 120, 60))
+    cv.fill(x, y + h - 12, w, 2, (40, 40, 40))
+    fx, fy = x + w // 2, y + h // 2
+    cv.fill(fx - 52, fy - 3, 104, 7, WHITE)
+    cv.poly([(fx - 10, fy - 3), (fx + 14, fy - 16), (fx + 26, fy - 16),
+             (fx + 10, fy - 3)], WHITE)
+    cv.poly([(fx - 30, fy + 4), (fx - 44, fy + 16), (fx - 30, fy + 16),
+             (fx - 18, fy + 4)], WHITE)
+    cv.poly([(fx + 46, fy - 3), (fx + 58, fy - 14), (fx + 62, fy - 14),
+             (fx + 56, fy - 3)], WHITE)
+    cv.circle(fx + 44, fy, 2, BLUE)
+
+
+def scene_canberra(cv, x, y, w, h):
+    # Two flags side by side: Australia blue, China red.
+    cv.fill(x, y, w // 2, h, (0, 40, 120))
+    cv.fill(x + w // 2, y, w - w // 2, h, (222, 0, 41))
+    for sx, sy in ((14, 8), (30, 16), (18, 24), (36, 8)):
+        cv.circle(x + sx, y + sy, 2, WHITE)
+    for sx, sy in ((10, 8), (22, 12), (28, 22), (14, 24)):
+        cv.circle(x + w // 2 + sx, y + sy, 2, (255, 222, 0))
+    cv.fill(x, y + h - 6, w, 6, GOLD)
+
+
+def scene_bitcoin(cv, x, y, w, h):
+    # Bitcoin coin, red falling line.
+    cv.fill(x, y, w, h, (16, 20, 32))
+    cx, cy = x + 34, y + h // 2
+    cv.circle(cx, cy, 16, (247, 147, 26))
+    draw_text(cv, cx - 6, cy - 7, "B", 2, WHITE)
+    pts = [(x + 62, y + 8), (x + 84, y + 14), (x + 106, y + 10),
+           (x + 128, y + 22), (x + 150, y + 26), (x + w - 8, y + h - 10)]
+    for a, b in zip(pts, pts[1:]):
+        cv.line(a[0], a[1], b[0], b[1], RED2, 2)
+    draw_text(cv, x + w - 52, y + h - 12, "-3.9%", 1, (255, 120, 120))
+
+
+def scene_f1(cv, x, y, w, h):
+    # Chequered band, red race car under lights.
+    cv.fill(x, y, w, h, (12, 12, 20))
+    for i in range(0, w, 12):
+        for j in (0, 1):
+            if (i // 12 + j) % 2 == 0:
+                cv.fill(x + i, y + j * 6, 12, 6, WHITE)
+    cx, cy = x + w // 2, y + h // 2 + 6
+    cv.fill(cx - 52, cy - 6, 104, 10, RED2)
+    cv.poly([(cx - 20, cy - 6), (cx - 8, cy - 16), (cx + 22, cy - 16),
+             (cx + 30, cy - 6)], RED2)
+    cv.fill(cx - 58, cy - 14, 8, 8, RED2)
+    cv.circle(cx - 30, cy + 6, 7, INK)
+    cv.circle(cx + 30, cy + 6, 7, INK)
+    cv.circle(cx - 30, cy + 6, 3, GREY)
+    cv.circle(cx + 30, cy + 6, 3, GREY)
+
+
+def scene_cricket(cv, x, y, w, h):
+    # Green outfield, pitch, bat and ball.
+    cv.fill(x, y, w, h, (40, 130, 60))
+    cv.fill(x + w // 2 - 14, y, 28, h, (205, 175, 120))
+    for yy in (6, h - 8):
+        for xx in (-8, 0, 8):
+            cv.fill(x + w // 2 + xx - 1, y + yy, 2, 6, (255, 230, 120))
+    bx, by = x + w // 2 - 34, y + h // 2 - 4
+    cv.fill(bx, by, 22, 5, (150, 105, 50))
+    cv.fill(bx + 22, by + 1, 8, 3, (150, 105, 50))
+    cv.circle(x + w // 2 + 30, y + h // 2 + 8, 4, RED2)
+
+
+# ---------------------------------------------------------------- data
+# (banner, tag, kicker, headline, summary, scene)
+LEADS = [
+    ("COP31: OVERTIME", "No deal - day 13",
+     "1 ANTALYA - CLIMATE",
+     "Climate summit runs into Saturday",
+     "No deal by Friday. Draft omits fossil fuels.",
+     scene_cop31),
+    ("SAUDI: MISSILES", "5 shot down",
+     "2 RIYADH - JIZAN - WAR",
+     "Five missiles shot down",
+     "Three over Riyadh, two over Jizan.",
+     scene_riyadh),
+    ("PERU: QUAKE 6.7", "00:09 UTC - 108 km deep",
+     "3 JUNIN, PERU - EARTHQUAKE",
+     "Quake 6.7 shakes Peru",
+     "Felt in Lima; no deaths or tsunami risk.",
+     scene_peru),
+]
+
+# (kicker, headline, summary, scene) -- headlines and summaries fit
+# 2 lines at scale 2 in a 188 px column (15 chars a line).
+MEDIUM = [
+    ("4 KYIV - WAR", "Crimea bridge 'will not stay'",
+     "More double-tap strikes feared.", scene_kyiv),
+    ("5 HORMUZ - WAR", "Iran 'shoots down US drone'",
+     "No word from Washington yet.", scene_hormuz),
+    ("6 TEHRAN", "Iran: uranium stock stays put",
+     "Seeks a 'fair solution'.", scene_iran),
+    ("7 WASHINGTON", "Trump vows tax on data centres",
+     "No details yet on the penalty.", scene_aitax),
+    ("8 BEIJING", "China warns Japan on Taiwan",
+     "Tokyo: stance is unchanged.", scene_chinajapan),
+    ("9 DAVAO - AIR", "146 safe as jet lands in Davao",
+     "767 diverts after midnight.", scene_davao),
+    ("10 CANBERRA", "Australia-China AI talks",
+     "The two agree to AI talks.", scene_canberra),
+    ("11 MARKETS", "Bitcoin trades below $59,000",
+     "Down 3.9%; ether $1,625.", scene_bitcoin),
+    ("12 LAS VEGAS F1", "Russell fastest in practice",
+     "1:34.041 in a damp session.", scene_f1),
+    ("13 WELLINGTON", "Rahul's century in Wellington",
+     "India 344 for 2 at tea.", scene_cricket),
+]
+
+# One line each at scale 2 in a 340 px column (28 chars max).
+ALSO = [
+    "14 KYIV 2 killed, 42 hurt",
+    "15 DENMARK Plot: two charged",
+    "16 ANTALYA Fossil summit",
+    "17 ANTALYA Panama veto risk",
+    "18 ANTALYA PLN power deals",
+    "19 YEMEN Jeddah threat",
+    "20 WASHINGTON Vance on Iran",
+    "21 WASHINGTON SpaceX cash",
+    "22 TEXAS 63-minute execution",
+    "23 LOS ANGELES Arson verdict",
+    "24 MISSOURI $7.25bn payout",
+    "25 VANCOUVER Trial rests",
+    "26 PYONGYANG Kim tours",
+    "27 SEJONG Train derails",
+    "28 TAIPEI Budget passed",
+    "29 BANGKOK Arsenic plan",
+    "30 NEW DELHI SCO forum held",
+    "31 E INDIA Akvan rain alerts",
+    "32 MYANMAR Sanctions urged",
+    "33 PORT LOUIS Agency talks",
+    "34 MELBOURNE Cummins stays",
+    "35 LAS VEGAS Max under probe",
+]
+
+NUMBERS = [
+    ("Day 13", ["COP31 summit", "planned to", "close day 12"]),
+    ("5", ["missiles shot", "down over", "Riyadh, Jizan"]),
+    ("6.7", ["magnitude of", "the quake in", "Junin, Peru"]),
+    ("146", ["all aboard", "safe after an", "engine alert"]),
+    ("$58,983", ["bitcoin early", "Saturday,", "down 3.9%"]),
+    ("124*", ["Rahul's score", "at tea in", "Wellington"]),
+]
+
+REGIONS = [
+    ("EUROPE 7", RED), ("AMERICAS 10", NAVY2), ("ASIA 9", TEAL),
+    ("MIDDLE EAST 4", GOLD), ("OCEANIA 3", GREEN), ("AFRICA 1", PURPLE),
+    ("GLOBAL 1", GREY),
+]
+
+DATE_CHECK = (
+    "DATE CHECK Left out as Friday 20 November's news: Wall Street's "
+    "correction, the Kyiv bridges barrage, the missile in Poland, the "
+    "UK-EU deal, Cyclone Akvan's landfall. Not confirmed when drawn: "
+    "BepiColombo at Mercury, a final COP31 text."
+)
+
+
+def draw_map(cv, x, y, w, h):
+    cv.fill(x, y, w, h, NAVY)
+    land = (222, 210, 170)
+    polys = [
+        [(18, 38), (62, 22), (108, 30), (112, 58), (86, 78), (52, 72), (24, 58)],
+        [(78, 92), (108, 88), (118, 118), (98, 152), (82, 128)],
+        [(138, 32), (164, 24), (176, 42), (156, 56), (138, 48)],
+        [(140, 68), (168, 62), (180, 92), (162, 124), (144, 98)],
+        [(178, 28), (248, 22), (266, 48), (242, 72), (202, 66), (184, 48)],
+        [(232, 138), (264, 132), (270, 152), (240, 158)],
+    ]
+    for p in polys:
+        cv.poly([(x + px, y + py) for px, py in p], land)
+    pins = [(172, 48, "1"), (190, 72, "2"), (92, 122, "3"), (152, 32, "4"),
+            (214, 84, "5"), (206, 58, "6"), (42, 54, "7"), (238, 48, "8"),
+            (254, 84, "9"), (252, 148, "10"), (140, 110, "11"),
+            (30, 62, "12"), (272, 166, "13")]
+    for px, py, n in pins:
+        cv.circle(x + px, y + py, 8, RED2)
+        draw_text(cv, x + px - (len(n) * 6 - 1) // 2, y + py - 3, n, 1, WHITE)
+    draw_text(cv, x + 8, y + h - 26, "Each number is the story", 1, WHITE)
+    draw_text(cv, x + 8, y + h - 16, "with that number on this page.", 1, WHITE)
 
 
 # ---------------------------------------------------------------- layout
 def build_image():
     cv = Canvas(W, H, PAPER)
-    M = 24
+    M = 20
     RW = W - 2 * M
 
-    # Masthead.
-    cv.fill(M, M, RW, 118, NAVY)
-    cv.fill(M, M + 118, RW, 6, RED)
-    draw_text_centered(cv, W // 2, M + 16, "THE WORLD IN ONE DAY", 6, WHITE)
-    draw_text_centered(cv, W // 2, M + 70, "SATURDAY 21 NOVEMBER 2026", 3, (255, 210, 90))
-    draw_text_centered(cv, W // 2, M + 96, "THE DAY'S NEWS IN ONE IMAGE", 2, (200, 210, 230))
+    # Top strip.
+    y = 10
+    draw_text(cv, M, y, "THE WORLD IN ONE DAY", 2, RED)
+    right = "35 STORIES \u2022 7 REGIONS \u2022 EVERY ONE DATED"
+    draw_text(cv, M + RW - text_w(right, 2), y, right, 2, INK)
+    y += 18
+    cv.hline(M, y, RW, INK, 2)
+    y += 6
 
-    # Lead story.
-    ly = M + 142
-    lh = 300
-    tx = M
-    tw = 560
-    draw_text(cv, tx, ly + 6, "POLAND  •  NATO", 2, RED)
-    cv.hline(tx, ly + 28, tw, INK, 2)
-    hy = ly + 44
-    draw_text(cv, tx, hy, "RUSSIAN", 5, INK)
-    draw_text(cv, tx, hy + 42, "MISSILES HIT", 5, INK)
-    draw_text(cv, tx, hy + 84, "POLAND", 5, RED)
-    sy = hy + 138
-    draw_para(cv, tx, sy, "Two Russian missiles and a suspected drone came down in Poland. Warsaw calls it a deliberate provocation; NATO calls it a grave violation of its airspace.", tw, 2, INK)
-    ax = M + 584
-    aw = RW - 584
-    lead_art(cv, ax, ly, aw, lh)
+    # Huge date.
+    draw_text_bold(cv, W // 2 - text_w("Saturday 21 November 2026", 6) // 2,
+                   y, "Saturday 21 November 2026", 6, INK)
+    y += 46
+    draw_text_centered(cv, W // 2, y,
+                       "COP31 past deadline \u2022 Missiles shot down over "
+                       "Saudi Arabia \u2022 Quake shakes Peru", 2, INK)
+    y += 18
+    cv.hline(M, y, RW, INK, 2)
+    y += 6
 
-    # Secondary stories, 2 x 2.
-    gy = ly + lh + 22
-    gh = 148
-    gw = (RW - 24) // 2
-    panels = [
-        ("MARKETS", "WALL STREET SLUMPS INTO CORRECTION",
-         "S&P 500 falls 3.7% as AI shares sell off; Nasdaq down over 5%.", icon_chart, RED),
-        ("MIDDLE EAST", "SAUDI INTERCEPTS HOUTHI MISSILES",
-         "Riyadh shoots down ballistic missiles and drones a day after a skyscraper was hit.", icon_tent, TEAL),
-        ("EUROPE", "DENMARK: RUSSIA PLOT TO KILL RAPPER",
-         "Two Danes charged over a plot to assassinate a US-Ukrainian rapper.", icon_crowd, NAVY2),
-        ("CLIMATE", "COP31 ENTERS FINAL STRETCH",
-         "Fossil fuels and climate finance top the agenda in Turkey.", icon_globe, (34, 139, 34)),
-    ]
-    for i, (kick, head, summ, icon, col) in enumerate(panels):
-        px = M + (i % 2) * (gw + 24)
-        py = gy + (i // 2) * (gh + 18)
-        cv.fill(px, py, gw, gh, WHITE)
-        cv.rect(px, py, gw, gh, INK, 2)
-        cv.fill(px, py, 8, gh, col)
-        ix = px + gw - 92
-        iy = py + 12
-        icon(cv, ix, iy, 76, 56)
-        draw_text(cv, px + 20, py + 10, kick, 2, col)
-        draw_para(cv, px + 20, py + 32, head, gw - 116, 3, INK, leading=26)
-        n_head_lines = len(wrap(head, gw - 116, 3))
-        draw_para(cv, px + 20, py + 32 + n_head_lines * 26 + 4, summ, gw - 40, 2, (60, 60, 60))
+    # Numbers row: 6 cells.
+    cw = RW // 6
+    for i, (num, caps) in enumerate(NUMBERS):
+        cx = M + i * cw
+        sc = 4 if text_w(num, 4) <= cw - 8 else 3
+        draw_text(cv, cx + (cw - text_w(num, sc)) // 2, y, num, sc, NAVY2)
+        cy = y + 32
+        for cap in caps:
+            draw_text(cv, cx + (cw - text_w(cap, 2)) // 2, cy, cap, 2, GREY)
+            cy += 17
+        if i:
+            cv.vline(cx, y + 2, 76, MIDGREY, 1)
+    y += 82
 
-    # Also today, 3 x 2.
-    ay = gy + 2 * gh + 18 + 18
-    draw_text(cv, M, ay, "ALSO TODAY", 2, RED)
-    cv.hline(M, ay + 20, RW, INK, 2)
-    items = [
-        ("WORLD COURT", "finds Myanmar guilty of Rohingya genocide"),
-        ("NEW YORK", "Mamdani to close Rikers Island jail by 2032"),
-        ("WASHINGTON", "Trump threatens ban on overseas AI data centres"),
-        ("SOUTH AFRICA", "nearly 600 women killed in three months"),
-        ("PENTAGON", "declassifies UFO footage from Middle East"),
-        ("FRANCE", "police sentenced for beating Michel Zecler"),
-    ]
-    cw = (RW - 48) // 3
-    for i, (lead, rest) in enumerate(items):
-        cx = M + (i % 3) * (cw + 24)
-        cy = ay + 32 + (i // 3) * 64
-        draw_text(cv, cx, cy, lead, 2, INK)
-        draw_para(cv, cx, cy + 20, rest, cw, 2, (60, 60, 60))
+    # Region bar.
+    rx = M
+    for label, col in REGIONS:
+        wch = text_w(label, 2) + 16
+        cv.fill(rx, y, wch, 18, col)
+        draw_text(cv, rx + 8, y + 2, label, 2, WHITE)
+        rx += wch + 8
+    y += 22
+
+    # Three illustrated leads.
+    lw = (RW - 24) // 3
+    for i, (banner, tag, kick, head, summ, scene) in enumerate(LEADS):
+        lx = M + i * (lw + 12)
+        scene(cv, lx, y, lw, 60)
+        cv.fill(lx, y, text_w(banner, 2) + 12, 18, RED)
+        draw_text(cv, lx + 6, y + 2, banner, 2, WHITE)
+        cv.fill(lx, y + 60 - 18, text_w(tag, 2) + 12, 18, WHITE)
+        draw_text(cv, lx + 6, y + 60 - 16, tag, 2, INK)
+        ky = y + 66
+        draw_text(cv, lx, ky, kick, 2, RED)
+        draw_para(cv, lx, ky + 20, head, lw, 3, INK, leading=22)
+        n_head = len(wrap(head, lw, 3))
+        draw_para(cv, lx, ky + 20 + n_head * 22 + 4, summ, lw, 2, (60, 60, 60),
+                  leading=17)
+    y += 198
+
+    # Ten medium stories, 2 rows x 5.
+    mw = (RW - 40) // 5
+    for row in range(2):
+        for col in range(5):
+            kick, head, summ, scene = MEDIUM[row * 5 + col]
+            mx = M + col * (mw + 10)
+            my = y + row * 124
+            scene(cv, mx, my, mw, 30)
+            draw_text(cv, mx, my + 34, kick, 2, RED)
+            draw_para(cv, mx, my + 52, head, mw, 2, INK, leading=17)
+            n_head = len(wrap(head, mw, 2))
+            draw_para(cv, mx, my + 52 + n_head * 17 + 3, summ, mw, 2,
+                      (60, 60, 60), leading=17)
+    y += 2 * 124 + 8
+
+    # Map + ALSO list.
+    draw_text(cv, M, y, "WHERE IT HAPPENED", 2, RED)
+    draw_text(cv, M + 304, y, "ALSO ON SATURDAY 21 NOVEMBER - 22 MORE STORIES",
+              2, RED)
+    y += 20
+    map_w = 288
+    draw_map(cv, M, y, map_w, 220)
+    ax = M + map_w + 16
+    acw = (RW - map_w - 16) // 2
+    for i, item in enumerate(ALSO):
+        ix = ax + (i // 11) * acw
+        iy = y + (i % 11) * 20
+        num = item.split(" ", 1)[0]
+        rest = item[len(num) + 1:]
+        draw_text(cv, ix, iy, num + " ", 2, RED)
+        draw_text(cv, ix + text_w(num + " ", 2), iy, rest, 2, INK)
+    y += 220 + 8
+
+    # DATE CHECK box.
+    lines = wrap(DATE_CHECK, RW - 16, 2)
+    box_h = len(lines) * 17 + 12
+    cv.rect(M, y, RW, box_h, RED, 2)
+    ty = y + 6
+    for ln in lines:
+        draw_text(cv, M + 8, ty, ln, 2, INK)
+        ty += 17
+    y += box_h + 8
 
     # Footer.
-    fy = ay + 32 + 2 * 64 + 16
-    cv.hline(M, fy, RW, INK, 2)
-    draw_text_centered(cv, W // 2, fy + 12, "UK and EU sign landmark food, carbon and youth deals in Brussels", 2, INK)
+    draw_text_centered(cv, W // 2, y,
+                       "Every story happened, or was first reported, on "
+                       "Saturday 21 November 2026.", 2, INK)
+    y += 18
+    if y + 14 <= H - 6:
+        draw_text_centered(cv, W // 2, y,
+                           "Sources: AFP, Reuters, AP, Al Jazeera, Dawn, "
+                           "USGS, IGP, ABC, CNN - original drawings.",
+                           2, GREY)
+        y += 14
+    print("final y:", y)
     return png_bytes(cv)
 
 
